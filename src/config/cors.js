@@ -4,6 +4,9 @@ import ApiError from '~/utils/ApiError';
 
 export const corsOptions = {
   origin: function (origin, callback) {
+    if (!origin) {
+      return callback(null, true); //null khong loi va true cho phep di qua
+    }
     if (WHITELIST_DOMAINS.includes(origin)) {
       return callback(null, true);
     }

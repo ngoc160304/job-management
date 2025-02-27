@@ -1,5 +1,15 @@
-/**
- * Updated by trungquandev.com's author on August 17 2023
- * YouTube: https://youtube.com/@trungquandev
- * "A bit of fragrance clings to the hand that gives flowers!"
- */
+import express from 'express';
+import { userRouter } from './userRoute';
+import { jobRouter } from './jobRoute';
+import { complainRouter } from './complainRoute';
+import { contractRouter } from './contractRoute';
+import { candidateRouter } from './candidateRoute';
+const Router = express.Router();
+
+Router.use('/users', userRouter);
+Router.use('/jobs', jobRouter);
+Router.use('/complains', complainRouter);
+Router.use('/contracts', contractRouter);
+Router.use('/candidates', candidateRouter);
+
+export const APIs_V1 = Router;
