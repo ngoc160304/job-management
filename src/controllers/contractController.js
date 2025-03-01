@@ -25,4 +25,13 @@ const update = async (req, res, next) => {
     next(error);
   }
 };
-export const contractController = { getListContract, createNew, update };
+const changStatus = async (req, res, next) => {
+  try {
+    const contractId = req.params.id;
+    const updatedColumn = await contractSercice.changStatus(contractId, req.query.status);
+    res.status(StatusCodes.NON_AUTHORITATIVE_INFORMATION).json(updatedColumn);
+  } catch (error) {
+    next(error);
+  }
+};
+export const contractController = { getListContract, createNew, update, changStatus };

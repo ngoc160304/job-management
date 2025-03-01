@@ -28,8 +28,17 @@ const update = async (contractId, reqBody) => {
     throw error;
   }
 };
+const changStatus = async (contractId, stauts) => {
+  try {
+    const updatedContract = await contractModel.changStatus(contractId, stauts);
+    return updatedContract;
+  } catch (error) {
+    throw error;
+  }
+};
 export const contractSercice = {
   getListContract,
   createNew,
-  update
+  update,
+  changStatus
 };

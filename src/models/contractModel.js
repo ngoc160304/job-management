@@ -1,6 +1,7 @@
 import Joi from 'joi';
 import { ObjectId } from 'mongodb';
 import { GET_DB } from '~/config/mongodb';
+import { STATUS } from '~/utils/constants';
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators';
 
 const CONTRACT_COLLECTION_NAME = 'contracts';
@@ -8,7 +9,10 @@ const CONTRACT_COLLECTION_SHEMA = Joi.object({
   creatorId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
   description: Joi.string().required().min(100).max(10000).trim().strict(),
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
-  isAllow: Joi.boolean().default(false),
+  status: Joi.string()
+    .required()
+    .valid(STATUS.ACCEPT, STATUS.REJECT, STATUS.PENDING)
+    .default(STATUS.REJECT),
   _destroy: Joi.boolean().default(false)
 });
 const findOneById = async (id) => {
@@ -72,12 +76,34 @@ const udpate = async (contractId, updateData) => {
     throw new Error(error);
   }
 };
-
+const changStatus = async (contractId, status) => {
+  try {
+    const result = await GET_DB()
+      .collection(CONTRACT_COLLECTION_NAME)
+      .findOneAndUpdate(
+        {
+          _id: ObjectId.createFromHexString(contractId.toString())
+        },
+        {
+          $set: {
+            status: status
+          }
+        },
+        {
+          returnDocument: 'after'
+        }
+      );
+    return result;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
 export const contractModel = {
   CONTRACT_COLLECTION_NAME,
   CONTRACT_COLLECTION_SHEMA,
   createNew,
   findOneById,
   getListContract,
-  udpate
+  udpate,
+  changStatus
 };

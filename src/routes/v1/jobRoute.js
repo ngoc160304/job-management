@@ -13,8 +13,18 @@ Router.route('/').post(
 );
 Router.route('/list-jobs').get(
   authMiddleware.isAuthorized,
-  authMiddleware.authorize([ROLE_USER.EMPLOYER, ROLE_USER.ADMIN]),
+  authMiddleware.authorize([ROLE_USER.EMPLOYER]),
   jobController.getlistJobs
 );
-Router.route('/list-jobs-user').get(jobController.getListJobsUser);
+Router.route('/admin/list-jobs').get(
+  authMiddleware.isAuthorized,
+  authMiddleware.authorize([ROLE_USER.ADMIN]),
+  jobController.getListJobsAdmin
+);
+Router.route('/admin/chang-status/:id').get(
+  authMiddleware.isAuthorized,
+  authMiddleware.authorize([ROLE_USER.ADMIN]),
+  jobController.changStatus
+);
+Router.route('/user/list-jobs').get(jobController.getListJobsUser);
 export const jobRouter = Router;

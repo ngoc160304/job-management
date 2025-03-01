@@ -64,10 +64,55 @@ const statistics = async (req, res, next) => {
     next(error);
   }
 };
+const getListUser = async (req, res, next) => {
+  try {
+    const result = await userService.getListUser(req.query);
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+const getListEmployer = async (req, res, next) => {
+  try {
+    const result = await userService.getListEmployer(req.query);
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+const createNewAdmin = async (req, res, next) => {
+  try {
+    const result = await userService.createNewAdmin(req.body);
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+const deleteUser = async (req, res, next) => {
+  try {
+    const result = await userService.deleteUser(req.params.id);
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+const update = async (req, res, next) => {
+  try {
+    const result = await userService.update(req.params.id, req.body);
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 export const userController = {
   createNew,
   login,
   refreshToken,
   logout,
-  statistics
+  statistics,
+  getListUser,
+  getListEmployer,
+  createNewAdmin,
+  deleteUser,
+  update
 };

@@ -24,8 +24,26 @@ const getListJobsUser = async (reqQuery) => {
     throw error;
   }
 };
+const getListJobsAdmin = async (reqQuery) => {
+  try {
+    const result = await jobModel.getListJobsAdmin(reqQuery);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+const changStatus = async (jobId, status) => {
+  try {
+    const result = await jobModel.changStatus(jobId, status);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
 export const jobService = {
   createNew,
   getlistJobs,
-  getListJobsUser
+  getListJobsUser,
+  getListJobsAdmin,
+  changStatus
 };

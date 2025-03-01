@@ -35,10 +35,6 @@ const login = async (reqBody) => {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found');
     }
 
-    // if (!bcryptjs.compareSync(reqBody.password, existUser.password)) {
-    //   throw new ApiError(StatusCodes.NOT_ACCEPTABLE, 'Your Email or Password is incorrect!');
-    // }
-    // Neu moi thu ok tao token dang nhap tra lai cho phia FE
     const userInfo = {
       _id: existUser._id,
       email: existUser.email,
@@ -68,7 +64,8 @@ const refreshToken = async (clietRefreshToken) => {
     );
     const userInfo = {
       _id: refreshTokenDecoded._id,
-      email: refreshTokenDecoded.email
+      email: refreshTokenDecoded.email,
+      role: refreshTokenDecoded.role
     };
     const accessToken = await JwtProvider.generateToken(
       userInfo,
@@ -96,9 +93,70 @@ const statistics = async () => {
     throw error;
   }
 };
+const getListUser = async (reqQuery) => {
+  try {
+    const result = await userModel.getListUser(reqQuery);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+const getListEmployer = async (reqQuery) => {
+  try {
+    const result = await userModel.getListEmployer(reqQuery);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+const createNewAdmin = async (reqBody) => {
+  try {
+    const existUser = await userModel.findOneByEmail(reqBody.email);
+    if (existUser) {
+      throw new ApiError(StatusCodes.CONFLICT, 'Email already exist');
+    }
+    const nameFromEmail = reqBody.email.split('@')[0];
+    const newUser = {
+      ...reqBody,
+      username: nameFromEmail,
+      password: bcryptjs.hashSync(reqBody.password, 8)
+    };
+    const craetedUser = await userModel.createNewUserAdmin(newUser);
+    const getNewUser = await userModel.findOneById(craetedUser.insertedId);
+
+    return pickUser(getNewUser);
+  } catch (error) {
+    throw error;
+  }
+};
+const deleteUser = async (userId) => {
+  try {
+    await userModel.deleteUser(userId);
+    return {
+      isSuccess: true
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+const update = async (userId, updateData) => {
+  try {
+    await userModel.update(userId, updateData);
+    return {
+      isSuccess: true
+    };
+  } catch (error) {
+    throw error;
+  }
+};
 export const userService = {
   createNew,
   login,
   refreshToken,
-  statistics
+  statistics,
+  getListUser,
+  getListEmployer,
+  createNewAdmin,
+  deleteUser,
+  update
 };

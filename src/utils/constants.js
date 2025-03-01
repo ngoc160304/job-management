@@ -10,7 +10,8 @@ export const STATUS = {
   ACTIVE: 'active',
   INACTIVE: 'inactive',
   PENDING: 'pending',
-  REJECT: 'reject'
+  REJECT: 'reject',
+  ACCEPT: 'accept'
 };
 export const SKILLS = [
   'html',

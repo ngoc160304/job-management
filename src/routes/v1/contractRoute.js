@@ -17,11 +17,10 @@ Router.route('/')
     contractValidation.createNew,
     contractController.createNew
   );
-Router.route('/update/:id').put(
+Router.route('/admin/change-status/:id').put(
   authMiddleware.isAuthorized,
   authMiddleware.authorize(ROLE_USER.ADMIN),
-  contractValidation.update,
-  contractController.update
+  contractController.changStatus
 );
 
 export const contractRouter = Router;
