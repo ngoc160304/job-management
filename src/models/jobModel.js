@@ -3,18 +3,17 @@ import { ObjectId } from 'mongodb';
 import { GET_DB } from '~/config/mongodb';
 import { JOB_LOCATION, STATUS } from '~/utils/constants';
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators';
+import { userModel } from './userModel';
 
 const JOB_COLLECTION_NAME = 'jobs';
 const JOB_COLLECTION_SCHEMA = Joi.object({
   creatorId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
-  title: Joi.string().required().min(3).max(50).trim().strict(),
-  description: Joi.string().required().min(3).max(256).trim().strict(),
+  position: Joi.string().required().min(3).max(50).trim().strict(),
+  description: Joi.string().required().min(3).trim().strict(),
   benefit: Joi.string().required().min(3).max(256).trim().strict(),
   requirements: Joi.array().required(),
   salary: Joi.number().required().min(200),
-  status: Joi.string()
-    .valid(STATUS.ACTIVE, STATUS.INACTIVE, STATUS.PENDING, STATUS.REJECT)
-    .default(STATUS.PENDING),
+  status: Joi.string().valid(STATUS.ACCEPT, STATUS.PENDING, STATUS.REJECT).default(STATUS.PENDING),
   applicationDeadline: Joi.date().greater('now'),
   jobLocation: Joi.string()
     .required()
@@ -38,6 +37,15 @@ const findOneById = async (id) => {
     throw new Error(error);
   }
 };
+const totalJob = async () => {
+  try {
+    return await GET_DB().collection(JOB_COLLECTION_NAME).countDocuments({
+      _destroy: false
+    });
+  } catch (error) {
+    throw new Error(error);
+  }
+};
 const validateBeforeCreate = async (data) => {
   return await JOB_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false });
 };
@@ -55,8 +63,8 @@ const createNew = async (data) => {
 };
 const getlistJobs = async (user, reqQuery) => {
   try {
-    const limit = parseInt(reqQuery.limit) || 10;
-    const skip = (parseInt(reqQuery.page) - 1) * limit || 0;
+    const limit = parseInt(reqQuery?.limit) || 10;
+    const skip = (parseInt(reqQuery?.page) - 1) * limit || 0;
     let jobs = null;
     jobs = await GET_DB()
       .collection(JOB_COLLECTION_NAME)
@@ -72,7 +80,7 @@ const getlistJobs = async (user, reqQuery) => {
     };
 
     if (reqQuery.limit) {
-      const totalJobs = jobs.length;
+      const totalJobs = await totalJob();
       result = {
         totalJobs,
         totalPages: Math.ceil(totalJobs / limit),
@@ -86,38 +94,42 @@ const getlistJobs = async (user, reqQuery) => {
     throw new Error(error);
   }
 };
-const statisticsJobs = async () => {
-  try {
-    const jobs = await GET_DB().collection(JOB_COLLECTION_NAME).countDocuments({
-      _destroy: false
-    });
 
-    return jobs;
-  } catch (error) {
-    throw new Error(error);
-  }
-};
-const getListJobsUser = async (reqQuery) => {
+const getListJobsByUser = async (reqQuery) => {
   try {
-    const limit = parseInt(reqQuery.limit) || 3;
-    const skip = (parseInt(reqQuery.page) - 1) * limit || 0;
+    const limit = parseInt(reqQuery?.limit) || 3;
+    const skip = (parseInt(reqQuery?.page) - 1) * limit || 0;
     const listJobs = await GET_DB()
       .collection(JOB_COLLECTION_NAME)
-      .find({
-        _destroy: false,
-        status: 'active'
-      })
-      .skip(skip)
-      .limit(limit)
-      .sort({
-        createdAt: -1
-      })
+      .aggregate([
+        {
+          $lookup: {
+            from: userModel.USER_COLLECTION_NAME,
+            localField: 'creatorId',
+            foreignField: '_id',
+            as: 'employerInfo'
+          }
+        },
+        {
+          $unwind: '$employerInfo'
+        },
+        {
+          $project: {
+            'employerInfo.password': 0
+          }
+        },
+        { $match: { _destroy: false } },
+        { $sort: { createdAt: -1 } },
+        { $skip: skip },
+        { $limit: limit }
+      ])
       .toArray();
     let result = {
       jobs: listJobs
     };
     if (reqQuery.limit) {
-      const totalJobs = listJobs.length;
+      const totalJobs = await totalJob();
+
       result = {
         totalJobs,
         totalPages: Math.ceil(totalJobs / limit),
@@ -131,25 +143,41 @@ const getListJobsUser = async (reqQuery) => {
     throw new Error(error);
   }
 };
-const getListJobsAdmin = async (reqQuery) => {
+const getListJobsByAdmin = async (reqQuery) => {
   try {
-    const limit = parseInt(reqQuery.limit) || 10;
-    const skip = (parseInt(reqQuery.page) - 1) * limit || 0;
+    const limit = parseInt(reqQuery?.limit) || 10;
+    const skip = (parseInt(reqQuery?.page) - 1) * limit || 0;
     let jobs = await GET_DB()
       .collection(JOB_COLLECTION_NAME)
-      .find({
-        _destroy: false
-      })
-      .limit(limit)
-      .skip(skip)
-      .sort({ createdAt: -1 })
+      .aggregate([
+        {
+          $lookup: {
+            from: userModel.USER_COLLECTION_NAME,
+            localField: 'creatorId',
+            foreignField: '_id',
+            as: 'employerInfo'
+          }
+        },
+        {
+          $unwind: '$employerInfo'
+        },
+        {
+          $project: {
+            'employerInfo.password': 0
+          }
+        },
+        { $match: { _destroy: false } },
+        { $sort: { createdAt: -1 } },
+        { $skip: skip },
+        { $limit: limit }
+      ])
       .toArray();
     let result = {
       jobs: jobs
     };
 
     if (reqQuery.limit) {
-      const totalJobs = jobs.length;
+      const totalJobs = await totalJob();
       result = {
         totalJobs,
         totalPages: Math.ceil(totalJobs / limit),
@@ -185,14 +213,55 @@ const changStatus = async (jobId, status) => {
     throw new Error(error);
   }
 };
+const deleteJob = async (jobId) => {
+  try {
+    const result = await GET_DB()
+      .collection(JOB_COLLECTION_NAME)
+      .findOneAndUpdate(
+        {
+          _id: ObjectId.createFromHexString(jobId.toString())
+        },
+        {
+          $set: {
+            _destroy: true
+          }
+        },
+        {
+          returnDocument: 'after'
+        }
+      );
+    return result;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+const totalJobByEmployer = async (employer, reqQuery) => {
+  try {
+    const find = {
+      _destroy: false,
+      creatorId: ObjectId.createFromHexString(employer._id.toString())
+    };
+    if (reqQuery?.statusJob) {
+      find.status = reqQuery.status;
+    }
+    const result = await GET_DB().collection(JOB_COLLECTION_NAME).countDocuments(find);
+
+    return result;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+
 export const jobModel = {
   JOB_COLLECTION_NAME,
   JOB_COLLECTION_SCHEMA,
   createNew,
   findOneById,
   getlistJobs,
-  statisticsJobs,
-  getListJobsUser,
-  getListJobsAdmin,
-  changStatus
+  getListJobsByUser,
+  getListJobsByAdmin,
+  changStatus,
+  totalJob,
+  deleteJob,
+  totalJobByEmployer
 };

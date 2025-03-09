@@ -2,6 +2,7 @@ import { StatusCodes } from 'http-status-codes';
 import { JwtProvider } from '~/providers/JwtProvider';
 import { env } from '~/config/environment';
 import ApiError from '~/utils/ApiError';
+import { ROLE_USER } from '~/utils/constants';
 const isAuthorized = async (req, res, next) => {
   const clientAccessToken = req.cookies?.accessToken;
   if (!clientAccessToken) {
@@ -14,6 +15,7 @@ const isAuthorized = async (req, res, next) => {
       env.ACCESS_TOKEN_SECRET_SIGNATURE
     );
     req['jwtDecoded'] = accessTokenDecoded;
+
     next();
   } catch (error) {
     if (error?.message?.includes('jwt expired')) {
@@ -23,13 +25,30 @@ const isAuthorized = async (req, res, next) => {
     next(new ApiError(StatusCodes.UNAUTHORIZED, 'Unauthorized !'));
   }
 };
-const authorize = (roles) => (req, res, next) => {
-  if (!roles.includes(req.jwtDecoded.role)) {
-    next(new ApiError(StatusCodes.UNAUTHORIZED, 'Unauthorized !'));
+const authorize = (roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.jwtDecoded.role)) {
+      next(new ApiError(StatusCodes.FORBIDDEN, 'Unauthorized !'));
+      return;
+    }
+    next();
+  };
+};
+const canEditUser = (req, res, next) => {
+  const { role, _id } = req.jwtDecoded;
+  const { id } = req.params;
+
+  if (role === ROLE_USER.ADMIN) {
+    return next();
   }
-  next();
+
+  if (_id === id) {
+    return next();
+  }
+  next(new ApiError(StatusCodes.FORBIDDEN, 'Unauthorized !'));
 };
 export const authMiddleware = {
   isAuthorized,
-  authorize
+  authorize,
+  canEditUser
 };

@@ -1,13 +1,13 @@
 import { StatusCodes } from 'http-status-codes';
+import { candidateModel } from '~/models/candidateModel';
+import { complainModel } from '~/models/complainModel';
+import { jobModel } from '~/models/jobModel';
 import { userModel } from '~/models/userModel';
 import ApiError from '~/utils/ApiError';
 import bcryptjs from 'bcryptjs';
-import { pickUser } from '~/utils/formatter';
-import { env } from '~/config/environment';
-import { JwtProvider } from '~/providers/JwtProvider';
-import { jobModel } from '~/models/jobModel';
-import { complainModel } from '~/models/complainModel';
-import { candidateModel } from '~/models/candidateModel';
+import { ROLE_USER } from '~/utils/constants';
+import { interviewerModel } from '~/models/interviewerModel';
+
 const createNew = async (reqBody) => {
   try {
     const existUser = await userModel.findOneByEmail(reqBody.email);
@@ -20,83 +20,49 @@ const createNew = async (reqBody) => {
       username: nameFromEmail,
       password: bcryptjs.hashSync(reqBody.password, 8)
     };
-    const craetedUser = await userModel.createNew(newUser);
-    const getNewUser = await userModel.findOneById(craetedUser.insertedId);
-
-    return pickUser(getNewUser);
+    const createdUser = await userModel.createNew(newUser);
+    const getNewUser = await userModel.findOneById(createdUser.insertedId);
+    return getNewUser;
   } catch (error) {
     throw error;
   }
 };
-const login = async (reqBody) => {
+const update = async (idUser, reqBody) => {
   try {
-    const existUser = await userModel.findOneByEmail(reqBody.email);
-    if (!existUser) {
-      throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found');
-    }
-
-    const userInfo = {
-      _id: existUser._id,
-      email: existUser.email,
-      role: existUser.role
-    };
-    const accessToken = await JwtProvider.generateToken(
-      userInfo,
-      env.ACCESS_TOKEN_SECRET_SIGNATURE,
-      env.ACCESS_TOKEN_LIFE
-    );
-    const refreshToken = await JwtProvider.generateToken(
-      userInfo,
-      env.REFRESH_TOKEN_SECRET_SIGNATURE,
-      env.REFRESH_TOKEN_LIFE
-    );
-
-    return { accessToken, refreshToken, ...pickUser(existUser) };
-  } catch (error) {
-    throw error;
-  }
-};
-const refreshToken = async (clietRefreshToken) => {
-  try {
-    const refreshTokenDecoded = await JwtProvider.verifyToken(
-      clietRefreshToken,
-      env.REFRESH_TOKEN_SECRET_SIGNATURE
-    );
-    const userInfo = {
-      _id: refreshTokenDecoded._id,
-      email: refreshTokenDecoded.email,
-      role: refreshTokenDecoded.role
-    };
-    const accessToken = await JwtProvider.generateToken(
-      userInfo,
-      env.ACCESS_TOKEN_SECRET_SIGNATURE,
-      env.ACCESS_TOKEN_LIFE
-    );
-    return { accessToken };
-  } catch (error) {
-    throw error;
-  }
-};
-const statistics = async () => {
-  try {
-    const users = await userModel.statisticsUser();
-    const jobs = await jobModel.statisticsJobs();
-    const complains = await complainModel.statisticsComplain();
-    const candidates = await candidateModel.statisticsCandidate();
-    return {
-      users,
-      jobs,
-      complains,
-      candidates
-    };
+    const updated = await userModel.update(idUser, reqBody);
+    return updated;
   } catch (error) {
     throw error;
   }
 };
 const getListUser = async (reqQuery) => {
   try {
-    const result = await userModel.getListUser(reqQuery);
-    return result;
+    const updated = await userModel.getListUser(reqQuery);
+    return updated;
+  } catch (error) {
+    throw error;
+  }
+};
+const deleteUser = async (idUser) => {
+  try {
+    const updated = await userModel.deleteUser(idUser);
+    return updated;
+  } catch (error) {
+    throw error;
+  }
+};
+const statistic = async () => {
+  try {
+    const users = await userModel.totalUser();
+    const jobs = await jobModel.totalJob();
+    const candidates = await candidateModel.totalCandidate();
+    const complains = await complainModel.totalComplain();
+    return {
+      users,
+      jobs,
+      candidates,
+      complains
+    };
   } catch (error) {
     throw error;
   }
@@ -109,41 +75,35 @@ const getListEmployer = async (reqQuery) => {
     throw error;
   }
 };
-const createNewAdmin = async (reqBody) => {
+const getDetailUser = async (id) => {
   try {
-    const existUser = await userModel.findOneByEmail(reqBody.email);
-    if (existUser) {
-      throw new ApiError(StatusCodes.CONFLICT, 'Email already exist');
+    const user = await userModel.findOneById(id);
+    let result = {
+      ...user
+    };
+    if (user.role === ROLE_USER.INTERVIEER) {
+      const employer = await userModel.findOneById(user.employerId);
+      result = {
+        ...result,
+        companyName: employer.companyName
+      };
     }
-    const nameFromEmail = reqBody.email.split('@')[0];
-    const newUser = {
-      ...reqBody,
-      username: nameFromEmail,
-      password: bcryptjs.hashSync(reqBody.password, 8)
-    };
-    const craetedUser = await userModel.createNewUserAdmin(newUser);
-    const getNewUser = await userModel.findOneById(craetedUser.insertedId);
-
-    return pickUser(getNewUser);
+    return result;
   } catch (error) {
     throw error;
   }
 };
-const deleteUser = async (userId) => {
+const statisticByEmployer = async (employer, reqQuery) => {
   try {
-    await userModel.deleteUser(userId);
+    const totalCandidate = await candidateModel.totalCandidateByEmployer(employer);
+    const totalJob = await jobModel.totalJobByEmployer(employer);
+    const totalJobAccept = await jobModel.totalJobByEmployer(employer, reqQuery);
+    const totalInterview = await interviewerModel.totalInterview(employer);
     return {
-      isSuccess: true
-    };
-  } catch (error) {
-    throw error;
-  }
-};
-const update = async (userId, updateData) => {
-  try {
-    await userModel.update(userId, updateData);
-    return {
-      isSuccess: true
+      totalCandidate,
+      totalJob,
+      totalJobAccept,
+      totalInterview
     };
   } catch (error) {
     throw error;
@@ -151,12 +111,11 @@ const update = async (userId, updateData) => {
 };
 export const userService = {
   createNew,
-  login,
-  refreshToken,
-  statistics,
+  update,
   getListUser,
-  getListEmployer,
-  createNewAdmin,
   deleteUser,
-  update
+  statistic,
+  getListEmployer,
+  getDetailUser,
+  statisticByEmployer
 };

@@ -3,7 +3,7 @@ import { env } from './environment';
 const MONGO_URI = env.MONGODB_URI;
 const DATABASE_NAME = env.DATABASE_NAME;
 
-let trelloDatabaseInstance = null;
+let jobPortalDatabaseInstance = null;
 
 const mongoClientInstance = new MongoClient(MONGO_URI, {
   serverApi: {
@@ -14,11 +14,11 @@ const mongoClientInstance = new MongoClient(MONGO_URI, {
 });
 const CONNECT_DB = async () => {
   await mongoClientInstance.connect();
-  trelloDatabaseInstance = mongoClientInstance.db(DATABASE_NAME);
+  jobPortalDatabaseInstance = mongoClientInstance.db(DATABASE_NAME);
 };
 const GET_DB = () => {
-  if (!trelloDatabaseInstance) throw new Error('Must connect to DB first');
-  return trelloDatabaseInstance;
+  if (!jobPortalDatabaseInstance) throw new Error('Must connect to DB first');
+  return jobPortalDatabaseInstance;
 };
 const CLOSE_DB = async () => {
   await mongoClientInstance.close();

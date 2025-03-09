@@ -16,17 +16,17 @@ const getlistJobs = async (user, reqQuey) => {
     throw error;
   }
 };
-const getListJobsUser = async (reqQuery) => {
+const getListJobsByUser = async (reqQuery) => {
   try {
-    const result = await jobModel.getListJobsUser(reqQuery);
+    const result = await jobModel.getListJobsByUser(reqQuery);
     return result;
   } catch (error) {
     throw error;
   }
 };
-const getListJobsAdmin = async (reqQuery) => {
+const getListJobsByAdmin = async (reqQuery) => {
   try {
-    const result = await jobModel.getListJobsAdmin(reqQuery);
+    const result = await jobModel.getListJobsByAdmin(reqQuery);
     return result;
   } catch (error) {
     throw error;
@@ -40,10 +40,28 @@ const changStatus = async (jobId, status) => {
     throw error;
   }
 };
+const deleteJob = async (jobId) => {
+  try {
+    const result = await jobModel.deleteJob(jobId);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+const getJobDetails = async (jobId) => {
+  try {
+    const result = await jobModel.findOneById(jobId);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
 export const jobService = {
   createNew,
   getlistJobs,
-  getListJobsUser,
-  getListJobsAdmin,
-  changStatus
+  getListJobsByUser,
+  getListJobsByAdmin,
+  changStatus,
+  deleteJob,
+  getJobDetails
 };

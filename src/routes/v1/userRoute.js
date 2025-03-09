@@ -1,31 +1,58 @@
 import express from 'express';
+
+import { userValidation } from '~/validations/userValidation';
 import { userController } from '~/controllers/userController';
-import { userValidations } from '~/validations/userValidation';
-import { authMiddleware } from '~/middlewares/athuMiddleware';
+import { authMiddleware } from '~/middlewares/authMiddleware';
 import { ROLE_USER } from '~/utils/constants';
 const Router = express.Router();
 
-Router.route('/').post(userValidations.createNew, userController.createNew);
-Router.route('/admin').post(userController.createNewAdmin);
-Router.route('/login').post(userValidations.login, userController.login);
-Router.route('/refresh_token').get(userController.refreshToken);
-Router.route('/logout').delete(userController.logout);
-Router.route('/admin/statistics').get(
+/** Admin */
+Router.route('/admin/create').post(
   authMiddleware.isAuthorized,
   authMiddleware.authorize([ROLE_USER.ADMIN]),
-  userController.statistics
+  userValidation.createNew,
+  userController.createNew
 );
-Router.route('/admin/list-user').get(
+Router.route('/edit/:id').put(
+  authMiddleware.isAuthorized,
+  authMiddleware.canEditUser,
+  userController.update
+);
+Router.route('/').get(
   authMiddleware.isAuthorized,
   authMiddleware.authorize([ROLE_USER.ADMIN]),
   userController.getListUser
 );
-Router.route('/list-employer').get(userController.getListEmployer);
-
 Router.route('/delete/:id').delete(
   authMiddleware.isAuthorized,
   authMiddleware.authorize([ROLE_USER.ADMIN]),
   userController.deleteUser
 );
-Router.route('/update/:id').put(authMiddleware.isAuthorized, userController.update);
+Router.route('/statistic').get(
+  authMiddleware.isAuthorized,
+  authMiddleware.authorize([ROLE_USER.ADMIN]),
+  userController.statistic
+);
+
+Router.route('/details/:id').get(
+  authMiddleware.isAuthorized,
+  authMiddleware.authorize([ROLE_USER.ADMIN]),
+  userController.getDetailUser
+);
+/** Admin */
+
+/** Employer */
+Router.route('/employer/statistic').get(
+  authMiddleware.isAuthorized,
+  authMiddleware.authorize([ROLE_USER.EMPLOYER]),
+  userController.statisticByEmployer
+);
+Router.route('/employer/list-candidate').get(
+  authMiddleware.isAuthorized,
+  authMiddleware.authorize([ROLE_USER.EMPLOYER]),
+  userController.getListCandidate
+);
+/** Employer */
+
+Router.route('/list-employer').get(authMiddleware.isAuthorized, userController.getListEmployer);
 export const userRouter = Router;

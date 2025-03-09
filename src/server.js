@@ -8,6 +8,7 @@ import { APIs_V1 } from '~/routes/v1';
 import { corsOptions } from './config/cors';
 import cookieParser from 'cookie-parser';
 import { errorHandlingMiddleware } from './middlewares/errorsHandlingMiddleware';
+import { CONNECT_ES } from './config/elasticsearch';
 
 const START_SERVER = () => {
   const app = express();
@@ -32,6 +33,8 @@ const START_SERVER = () => {
   try {
     await CONNECT_DB();
     console.log('Connected to MongoDB Cloud Atlas!');
+    await CONNECT_ES();
+    console.log('Connect to ES !');
     START_SERVER();
   } catch (error) {
     process.exit(0);

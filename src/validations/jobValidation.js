@@ -6,8 +6,8 @@ import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators';
 const createNew = async (req, res, next) => {
   const correctCondition = Joi.object({
     creatorId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
-    title: Joi.string().required().min(3).max(50).trim().strict(),
-    description: Joi.string().required().min(3).max(256).trim().strict(),
+    position: Joi.string().required().min(3).max(50).trim().strict(),
+    description: Joi.string().required().min(3).trim().strict(),
     benefit: Joi.string().required().min(3).max(256).trim().strict(),
     requirements: Joi.array().required(),
     salary: Joi.number().required().min(200),

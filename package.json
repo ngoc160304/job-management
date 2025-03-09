@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.22.10",
+    "@elastic/elasticsearch": "^8.17.1",
     "async-exit-hook": "^2.0.1",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",

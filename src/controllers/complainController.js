@@ -2,7 +2,7 @@ import { StatusCodes } from 'http-status-codes';
 import { complainSercice } from '~/services/complainSercice';
 const getListComplain = async (req, res, next) => {
   try {
-    const result = await complainSercice.getListComplain();
+    const result = await complainSercice.getListComplain(req.query);
     res.status(StatusCodes.OK).json(result);
   } catch (error) {
     next(error);
@@ -25,4 +25,18 @@ const resolve = async (req, res, next) => {
     next(error);
   }
 };
-export const complainController = { getListComplain, createNew, resolve };
+const getDetailsComplain = async (req, res, next) => {
+  try {
+    const complainId = req.params.id;
+    const result = await complainSercice.getDetailsComplain(complainId);
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+export const complainController = {
+  getListComplain,
+  createNew,
+  resolve,
+  getDetailsComplain
+};

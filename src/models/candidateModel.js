@@ -1,6 +1,7 @@
 import Joi from 'joi';
 import { ObjectId } from 'mongodb';
 import { GET_DB } from '~/config/mongodb';
+import { STATUS } from '~/utils/constants';
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators';
 const CANDIDATE_COLLECTION_NAME = 'candidates';
 const CANDIDATE_COLLECTION_SHEMA = Joi.object({
@@ -9,6 +10,7 @@ const CANDIDATE_COLLECTION_SHEMA = Joi.object({
   employerId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
   coverLetter: Joi.string().required().min(100).max(10000),
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
+  status: Joi.string().valid(STATUS.ACCEPT, STATUS.REJECT, STATUS.PENDING).default(STATUS.PENDING),
   _destroy: Joi.boolean().default(false)
 });
 const findOneById = async (id) => {
@@ -40,19 +42,6 @@ const createNew = async (data) => {
     throw new Error(error);
   }
 };
-const getListCandidate = async () => {
-  try {
-    const reuslt = await GET_DB()
-      .collection(CANDIDATE_COLLECTION_NAME)
-      .find({
-        _destroy: false
-      })
-      .toArray();
-    return reuslt;
-  } catch (error) {
-    throw error;
-  }
-};
 
 const udpate = async (contractId, updateData) => {
   try {
@@ -74,13 +63,26 @@ const udpate = async (contractId, updateData) => {
     throw new Error(error);
   }
 };
-const statisticsCandidate = async () => {
+const totalCandidate = async () => {
   try {
-    const jobs = await GET_DB().collection(CANDIDATE_COLLECTION_NAME).countDocuments({
+    const employer = await GET_DB().collection(CANDIDATE_COLLECTION_NAME).countDocuments({
       _destroy: false
     });
 
-    return jobs;
+    return employer;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+const totalCandidateByEmployer = async (employer) => {
+  try {
+    const result = await GET_DB()
+      .collection(CANDIDATE_COLLECTION_NAME)
+      .countDocuments({
+        _destroy: false,
+        employerId: ObjectId.createFromHexString(employer._id.toString())
+      });
+    return result;
   } catch (error) {
     throw new Error(error);
   }
@@ -90,7 +92,7 @@ export const candidateModel = {
   CANDIDATE_COLLECTION_SHEMA,
   createNew,
   findOneById,
-  getListCandidate,
   udpate,
-  statisticsCandidate
+  totalCandidate,
+  totalCandidateByEmployer
 };

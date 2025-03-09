@@ -1,7 +1,7 @@
 import express from 'express';
 import { complainController } from '~/controllers/complainController';
 import { complainValidation } from '~/validations/complainValidation';
-import { authMiddleware } from '~/middlewares/athuMiddleware';
+import { authMiddleware } from '~/middlewares/authMiddleware';
 import { ROLE_USER } from '~/utils/constants';
 const Router = express.Router();
 
@@ -22,5 +22,9 @@ Router.route('/resolve/:id').put(
   authMiddleware.authorize([ROLE_USER.ADMIN]),
   complainController.resolve
 );
-
+Router.route('/details/:id').get(
+  authMiddleware.isAuthorized,
+  authMiddleware.authorize([ROLE_USER.ADMIN]),
+  complainController.getDetailsComplain
+);
 export const complainRouter = Router;

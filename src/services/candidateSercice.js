@@ -1,12 +1,4 @@
 import { candidateModel } from '~/models/candidateModel';
-const getListCandidate = async () => {
-  try {
-    const reuslt = await candidateModel.getListCandidate();
-    return reuslt;
-  } catch (error) {
-    throw error;
-  }
-};
 const createNew = async (reqBody) => {
   try {
     const result = await candidateModel.createNew(reqBody);
@@ -29,7 +21,6 @@ const update = async (candidateId, reqBody) => {
   }
 };
 export const candidateSercice = {
-  getListCandidate,
   createNew,
   update
 };

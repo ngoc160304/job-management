@@ -1,8 +1,5 @@
 import { StatusCodes } from 'http-status-codes';
-import ms from 'ms';
 import { userService } from '~/services/userService';
-import ApiError from '~/utils/ApiError';
-
 const createNew = async (req, res, next) => {
   try {
     const createdUser = await userService.createNew(req.body);
@@ -11,55 +8,10 @@ const createNew = async (req, res, next) => {
     next(error);
   }
 };
-const login = async (req, res, next) => {
+const update = async (req, res, next) => {
   try {
-    const result = await userService.login(req.body);
-    res.cookie('accessToken', result.accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: ms('14 days')
-    });
-    res.cookie('refreshToken', result.refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: ms('14 days')
-    });
-    res.status(StatusCodes.OK).json(result);
-  } catch (error) {
-    next(error);
-  }
-};
-const refreshToken = async (req, res, next) => {
-  try {
-    const result = await userService.refreshToken(req.cookies?.refreshToken);
-    res.cookie('accessToken', result.accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: ms('14 days')
-    });
-    res.status(StatusCodes.OK).json(result);
-  } catch (error) {
-    next(new ApiError(StatusCodes.FORBIDDEN, 'Please Sign In! (Error from refresh Token'));
-  }
-};
-const logout = async (req, res, next) => {
-  try {
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
-    res.status(StatusCodes.OK).json({
-      loggedOut: true
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-const statistics = async (req, res, next) => {
-  try {
-    const result = await userService.statistics();
-    res.status(StatusCodes.OK).json(result);
+    const updated = await userService.update(req.params.id, req.body);
+    res.status(StatusCodes.CREATED).json(updated);
   } catch (error) {
     next(error);
   }
@@ -67,6 +19,24 @@ const statistics = async (req, res, next) => {
 const getListUser = async (req, res, next) => {
   try {
     const result = await userService.getListUser(req.query);
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+const deleteUser = async (req, res, next) => {
+  try {
+    await userService.deleteUser(req.params.id);
+    res.status(StatusCodes.NO_CONTENT).json({
+      deleted: true
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+const statistic = async (req, res, next) => {
+  try {
+    const result = await userService.statistic();
     res.status(StatusCodes.OK).json(result);
   } catch (error) {
     next(error);
@@ -80,39 +50,38 @@ const getListEmployer = async (req, res, next) => {
     next(error);
   }
 };
-const createNewAdmin = async (req, res, next) => {
+const getDetailUser = async (req, res, next) => {
   try {
-    const result = await userService.createNewAdmin(req.body);
+    const result = await userService.getDetailUser(req.params.id);
     res.status(StatusCodes.OK).json(result);
   } catch (error) {
     next(error);
   }
 };
-const deleteUser = async (req, res, next) => {
+const statisticByEmployer = async (req, res, next) => {
   try {
-    const result = await userService.deleteUser(req.params.id);
+    const result = await userService.statisticByEmployer(req.jwtDecoded, req.query);
     res.status(StatusCodes.OK).json(result);
   } catch (error) {
     next(error);
   }
 };
-const update = async (req, res, next) => {
+const getListCandidate = async (req, res, next) => {
   try {
-    const result = await userService.update(req.params.id, req.body);
-    res.status(StatusCodes.OK).json(result);
+    const result = await userService.getListCandidate(req.jwtDecoded, req.query);
+    return result;
   } catch (error) {
     next(error);
   }
 };
 export const userController = {
   createNew,
-  login,
-  refreshToken,
-  logout,
-  statistics,
+  update,
   getListUser,
-  getListEmployer,
-  createNewAdmin,
   deleteUser,
-  update
+  statistic,
+  getListEmployer,
+  getDetailUser,
+  statisticByEmployer,
+  getListCandidate
 };
