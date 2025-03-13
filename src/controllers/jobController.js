@@ -59,6 +59,22 @@ const getJobDetails = async (req, res, next) => {
     next(error);
   }
 };
+const getJobDetailsByUser = async (req, res, next) => {
+  try {
+    const result = await jobService.getJobDetailsByUser(req.params.id);
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+const update = async (req, res, next) => {
+  try {
+    const result = await jobService.update(req.params.id, req.body);
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 export const jobController = {
   createNew,
   getlistJobs,
@@ -66,5 +82,7 @@ export const jobController = {
   getListJobsByAdmin,
   changStatus,
   deleteJob,
-  getJobDetails
+  getJobDetails,
+  getJobDetailsByUser,
+  update
 };

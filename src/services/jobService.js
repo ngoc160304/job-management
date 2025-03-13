@@ -56,6 +56,22 @@ const getJobDetails = async (jobId) => {
     throw error;
   }
 };
+const getJobDetailsByUser = async (jobId) => {
+  try {
+    const result = await jobModel.getJobDetailsByUser(jobId);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+const update = async (jobId, reqBody) => {
+  try {
+    const result = await jobModel.update(jobId, reqBody);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
 export const jobService = {
   createNew,
   getlistJobs,
@@ -63,5 +79,7 @@ export const jobService = {
   getListJobsByAdmin,
   changStatus,
   deleteJob,
-  getJobDetails
+  getJobDetails,
+  getJobDetailsByUser,
+  update
 };

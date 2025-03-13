@@ -11,6 +11,7 @@ const CANDIDATE_COLLECTION_SHEMA = Joi.object({
   coverLetter: Joi.string().required().min(100).max(10000),
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
   status: Joi.string().valid(STATUS.ACCEPT, STATUS.REJECT, STATUS.PENDING).default(STATUS.PENDING),
+  cvLink: Joi.string().default(null),
   _destroy: Joi.boolean().default(false)
 });
 const findOneById = async (id) => {

@@ -24,6 +24,26 @@ const createNew = async (req, res, next) => {
       otherwise: Joi.optional()
     }),
     status: Joi.string().valid(STATUS.ACTIVE, STATUS.INACTIVE).required(),
+    expensive: Joi.when('role', {
+      is: ROLE_USER.JOB_SEEKER,
+      then: Joi.number().required(),
+      otherwise: Joi.forbidden()
+    }),
+    desiredSalary: Joi.when('role', {
+      is: ROLE_USER.JOB_SEEKER,
+      then: Joi.number().required(),
+      otherwise: Joi.forbidden()
+    }),
+    skills: Joi.when('role', {
+      is: ROLE_USER.JOB_SEEKER,
+      then: Joi.array().items(Joi.string().valid()).min(1).required(),
+      otherwise: Joi.forbidden()
+    }),
+    education: Joi.when('role', {
+      is: ROLE_USER.JOB_SEEKER,
+      then: Joi.string().required(),
+      otherwise: Joi.forbidden()
+    }),
     employerId: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).when('role', {
       is: ROLE_USER.INTERVIEER,
       then: Joi.required(),

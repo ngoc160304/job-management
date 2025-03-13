@@ -14,8 +14,8 @@ const CONNECT_ES = async () => {
   await esClient.ping();
   jobPortalElasticsearchInstance = esClient;
 };
-const GET_ES = async () => {
+const GET_ES = () => {
   if (!jobPortalElasticsearchInstance) throw new Error('Must connect to es');
-  return jobPortalElasticsearchInstance;
+  return esClient;
 };
 export { CONNECT_ES, GET_ES };

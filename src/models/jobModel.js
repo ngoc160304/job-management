@@ -10,7 +10,7 @@ const JOB_COLLECTION_SCHEMA = Joi.object({
   creatorId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
   position: Joi.string().required().min(3).max(50).trim().strict(),
   description: Joi.string().required().min(3).trim().strict(),
-  benefit: Joi.string().required().min(3).max(256).trim().strict(),
+  benefit: Joi.string().required().min(3).trim().strict(),
   requirements: Joi.array().required(),
   salary: Joi.number().required().min(200),
   status: Joi.string().valid(STATUS.ACCEPT, STATUS.PENDING, STATUS.REJECT).default(STATUS.PENDING),
@@ -97,6 +97,19 @@ const getlistJobs = async (user, reqQuery) => {
 
 const getListJobsByUser = async (reqQuery) => {
   try {
+    const find = {
+      _destroy: false,
+      status: STATUS.ACCEPT
+    };
+    if (reqQuery.skills) {
+      find.requirements = { $all: reqQuery.skills.split(',') };
+    }
+    if (reqQuery.salary) {
+      find.salary = { $gte: parseInt(reqQuery.salary) };
+    }
+    if (reqQuery.workLocation) {
+      find.jobLocation = reqQuery.workLocation;
+    }
     const limit = parseInt(reqQuery?.limit) || 3;
     const skip = (parseInt(reqQuery?.page) - 1) * limit || 0;
     const listJobs = await GET_DB()
@@ -118,7 +131,7 @@ const getListJobsByUser = async (reqQuery) => {
             'employerInfo.password': 0
           }
         },
-        { $match: { _destroy: false } },
+        { $match: find },
         { $sort: { createdAt: -1 } },
         { $skip: skip },
         { $limit: limit }
@@ -251,7 +264,64 @@ const totalJobByEmployer = async (employer, reqQuery) => {
     throw new Error(error);
   }
 };
-
+const getJobDetailsByUser = async (jobId) => {
+  try {
+    let jobs = await GET_DB()
+      .collection(JOB_COLLECTION_NAME)
+      .aggregate([
+        {
+          $lookup: {
+            from: userModel.USER_COLLECTION_NAME,
+            localField: 'creatorId',
+            foreignField: '_id',
+            as: 'employerInfo'
+          }
+        },
+        {
+          $unwind: '$employerInfo'
+        },
+        {
+          $project: {
+            'employerInfo.password': 0
+          }
+        },
+        {
+          $match: {
+            _destroy: false,
+            _id: ObjectId.createFromHexString(jobId),
+            status: STATUS.ACCEPT
+          }
+        }
+      ])
+      .toArray();
+    return jobs[0];
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+const update = async (jobId, dataUpdate) => {
+  try {
+    const result = await GET_DB()
+      .collection(JOB_COLLECTION_NAME)
+      .findOneAndUpdate(
+        {
+          _id: ObjectId.createFromHexString(jobId.toString())
+        },
+        {
+          $set: {
+            ...dataUpdate,
+            status: STATUS.PENDING
+          }
+        },
+        {
+          returnDocument: 'after'
+        }
+      );
+    return result;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
 export const jobModel = {
   JOB_COLLECTION_NAME,
   JOB_COLLECTION_SCHEMA,
@@ -263,5 +333,7 @@ export const jobModel = {
   changStatus,
   totalJob,
   deleteJob,
-  totalJobByEmployer
+  totalJobByEmployer,
+  getJobDetailsByUser,
+  update
 };

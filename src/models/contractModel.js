@@ -7,7 +7,7 @@ import { userModel } from './userModel';
 const CONTRACT_COLLECTION_NAME = 'contracts';
 const CONTRACT_COLLECTION_SHEMA = Joi.object({
   creatorId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
-  description: Joi.string().required().min(100).max(10000).trim().strict(),
+  description: Joi.string().required().min(100).trim().strict(),
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
   status: Joi.string().valid(STATUS.ACTIVE, STATUS.REJECT, STATUS.PENDING).default(STATUS.PENDING),
   _destroy: Joi.boolean().default(false)
