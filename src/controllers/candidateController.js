@@ -12,12 +12,21 @@ const createNew = async (req, res, next) => {
 const getListCandidates = async (req, res, next) => {
   try {
     const result = await candidateSercice.getListCandidates(req.jwtDecoded);
-    return result;
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+const deleteCandidate = async (req, res, next) => {
+  try {
+    const result = await candidateSercice.deleteCandidate(req.params.id);
+    res.status(StatusCodes.OK).json(result);
   } catch (error) {
     next(error);
   }
 };
 export const candidateController = {
   createNew,
-  getListCandidates
+  getListCandidates,
+  deleteCandidate
 };

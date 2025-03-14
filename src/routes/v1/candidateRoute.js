@@ -32,7 +32,11 @@ Router.route('/').post(
 );
 
 /** Xóa */
-// Router.route('/delete/:id').delete()
+// Router.route('/delete/:id').delete(
+//   authMiddleware.isAuthorized,
+//   authMiddleware.authorize([ROLE_USER.EMPLOYER]),
+//   candidateController.deleteCandidate
+// );
 /** Thay đổi trạng thái */
 // Router.route('/change-status/:id')
 /** xem chi tiết */
