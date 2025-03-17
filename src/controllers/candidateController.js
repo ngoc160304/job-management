@@ -11,7 +11,7 @@ const createNew = async (req, res, next) => {
 };
 const getListCandidates = async (req, res, next) => {
   try {
-    const result = await candidateSercice.getListCandidates(req.jwtDecoded);
+    const result = await candidateSercice.getListCandidates(req.jwtDecoded, req.query);
     res.status(StatusCodes.OK).json(result);
   } catch (error) {
     next(error);
@@ -25,8 +25,31 @@ const deleteCandidate = async (req, res, next) => {
     next(error);
   }
 };
+const changeStatus = async (req, res, next) => {
+  try {
+    const result = await candidateSercice.changeStatus(
+      req.params.id,
+      req.params.status,
+      req.params.email,
+      req.jwtDecoded
+    );
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+const getCandidateDetails = async (req, res, next) => {
+  try {
+    const result = await candidateSercice.getCandidateDetails(req.params.id);
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 export const candidateController = {
   createNew,
   getListCandidates,
-  deleteCandidate
+  deleteCandidate,
+  changeStatus,
+  getCandidateDetails
 };

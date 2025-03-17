@@ -12,6 +12,7 @@ const CANDIDATE_COLLECTION_SHEMA = Joi.object({
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
   status: Joi.string().valid(STATUS.ACCEPT, STATUS.REJECT, STATUS.PENDING).default(STATUS.PENDING),
   cvLink: Joi.string().default(null),
+  position: Joi.string().required(),
   _destroy: Joi.boolean().default(false)
 });
 const findOneById = async (id) => {
@@ -44,7 +45,7 @@ const createNew = async (data) => {
   }
 };
 
-const udpate = async (contractId, updateData) => {
+const changeStatus = async (contractId, status) => {
   try {
     const result = await GET_DB()
       .collection(CANDIDATE_COLLECTION_NAME)
@@ -53,7 +54,9 @@ const udpate = async (contractId, updateData) => {
           _id: ObjectId.createFromHexString(contractId.toString())
         },
         {
-          $set: updateData
+          $set: {
+            status: status
+          }
         },
         {
           returnDocument: 'after'
@@ -93,7 +96,7 @@ export const candidateModel = {
   CANDIDATE_COLLECTION_SHEMA,
   createNew,
   findOneById,
-  udpate,
   totalCandidate,
-  totalCandidateByEmployer
+  totalCandidateByEmployer,
+  changeStatus
 };

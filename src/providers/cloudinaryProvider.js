@@ -8,7 +8,8 @@ v2.config({
 const handleUpload = async (req, res, next) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+      next();
+      return;
     }
 
     const base64String = req.file.buffer.toString('base64');

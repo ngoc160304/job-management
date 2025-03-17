@@ -1,30 +1,58 @@
 import { candidateES } from '~/elasticsearch/candidateES';
 import { candidateModel } from '~/models/candidateModel';
+import { BrevoProvider } from '~/providers/brevoProvider';
+import { STATUS } from '~/utils/constants';
 const createNew = async (reqBody, user) => {
   try {
     const result = await candidateModel.createNew(reqBody);
-    const getNewCandidate = await candidateModel.findOneById(result.insertedId);
-    await candidateES.createNew(getNewCandidate, user);
-    return getNewCandidate;
+    await candidateES.createNew(result.insertedId, reqBody, user);
+    return await candidateES.createNew(result.insertedId, reqBody, user);
   } catch (error) {
     throw error;
   }
 };
-const update = async (candidateId, reqBody) => {
+
+const getListCandidates = async (user, reqQuery) => {
   try {
-    const updateData = {
-      ...reqBody,
-      updatedAt: Date.now()
-    };
-    const updatedCandidate = await candidateModel.update(candidateId, updateData);
-    return updatedCandidate;
+    const result = await candidateES.getListCandidates(user, reqQuery);
+    return result.map((hit) => ({
+      id: hit._id,
+      ...hit._source
+    }));
   } catch (error) {
     throw error;
   }
 };
-const getListCandidates = async (user) => {
+const deleteCandidate = async (idCandidate) => {
   try {
-    const result = await candidateES.getListCandidates(user);
+    const result = await candidateES.deleteCandidate(idCandidate);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+const changeStatus = async (idCandidate, status, email, user) => {
+  try {
+    await candidateES.changeStatus(idCandidate, status);
+    await candidateModel.changeStatus(idCandidate, status);
+    console.log(user);
+    const customSubject = `${user.companyName} thông báo tuyển dụng`;
+    let htmlContent = '';
+    if (status === STATUS.ACCEPT) {
+      htmlContent =
+        '<h3>Bạn đã ứng tuyển thành công vui lòng kiểm tra tin nhắn từ người phỏng vấn của chúng tôi</h3>';
+    } else {
+      htmlContent = '<h3>Điểu kiện bạn không đủ đáp ứng với chúng tôi</h3>';
+    }
+    await BrevoProvider.sendEmail(email, customSubject, htmlContent);
+    return true;
+  } catch (error) {
+    throw error;
+  }
+};
+const getCandidateDetails = async (idCandidate) => {
+  try {
+    const result = await candidateES.getCandidateDetails(idCandidate);
     return result;
   } catch (error) {
     throw error;
@@ -32,6 +60,8 @@ const getListCandidates = async (user) => {
 };
 export const candidateSercice = {
   createNew,
-  update,
-  getListCandidates
+  getListCandidates,
+  deleteCandidate,
+  changeStatus,
+  getCandidateDetails
 };

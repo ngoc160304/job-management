@@ -31,19 +31,24 @@ Router.route('/').post(
   candidateController.createNew
 );
 
-/** Xóa */
-// Router.route('/delete/:id').delete(
-//   authMiddleware.isAuthorized,
-//   authMiddleware.authorize([ROLE_USER.EMPLOYER]),
-//   candidateController.deleteCandidate
-// );
-/** Thay đổi trạng thái */
-// Router.route('/change-status/:id')
-/** xem chi tiết */
-// Router.route('/details/:id');
 Router.route('/list-candidate').get(
   authMiddleware.isAuthorized,
   authMiddleware.authorize([ROLE_USER.EMPLOYER]),
   candidateController.getListCandidates
+);
+Router.route('/delete/:id').delete(
+  authMiddleware.isAuthorized,
+  authMiddleware.authorize([ROLE_USER.EMPLOYER]),
+  candidateController.deleteCandidate
+);
+Router.route('/change-status/:status/:id/:email').put(
+  authMiddleware.isAuthorized,
+  authMiddleware.authorize([ROLE_USER.EMPLOYER]),
+  candidateController.changeStatus
+);
+Router.route('/details/:id').get(
+  authMiddleware.isAuthorized,
+  authMiddleware.authorize([ROLE_USER.EMPLOYER]),
+  candidateController.getCandidateDetails
 );
 export const candidateRouter = Router;

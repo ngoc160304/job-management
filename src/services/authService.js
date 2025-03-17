@@ -5,6 +5,7 @@ import bcryptjs from 'bcryptjs';
 import { pickUser } from '~/utils/formatter';
 import { env } from '~/config/environment';
 import { JwtProvider } from '~/providers/JwtProvider';
+import { ROLE_USER } from '~/utils/constants';
 
 const createNew = async (reqBody) => {
   try {
@@ -33,11 +34,17 @@ const login = async (reqBody) => {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found');
     }
 
-    const userInfo = {
+    let userInfo = {
       _id: existUser._id,
       email: existUser.email,
       role: existUser.role
     };
+    if (existUser.role === ROLE_USER.EMPLOYER) {
+      userInfo.companyName = existUser.companyName;
+    }
+    if (existUser.role === ROLE_USER.INTERVIEER) {
+      userInfo.employerId = existUser.employerId;
+    }
     const accessToken = await JwtProvider.generateToken(
       userInfo,
       env.ACCESS_TOKEN_SECRET_SIGNATURE,

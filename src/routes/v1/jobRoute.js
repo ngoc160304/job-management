@@ -46,7 +46,7 @@ Router.route('/user/details/:id').get(
   // authMiddleware.isAuthorized,
   jobController.getJobDetailsByUser
 );
-Router.route('/update/:id').get(
+Router.route('/update/:id').put(
   authMiddleware.isAuthorized,
   authMiddleware.authorize([ROLE_USER.EMPLOYER]),
   jobController.update

@@ -6,7 +6,6 @@ const uploadFile = async (req, res, next) => {
       const b64 = Buffer.from(req.file.buffer).toString('base64');
       let dataURI = 'data:' + req.file.mimetype + ';base64,' + b64;
       const cldRes = await cloudProvider.handleUpload(dataURI);
-      console.log(cldRes);
       req.body.cvLink = cldRes.url;
     }
     next();

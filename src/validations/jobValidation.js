@@ -7,8 +7,8 @@ const createNew = async (req, res, next) => {
   const correctCondition = Joi.object({
     creatorId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
     position: Joi.string().required().min(3).max(50).trim().strict(),
-    description: Joi.string().required().min(3).trim().strict(),
-    benefit: Joi.string().required().min(3).trim().strict(),
+    description: Joi.string().required().min(3),
+    benefit: Joi.string().required().min(3),
     requirements: Joi.array().required(),
     salary: Joi.number().required().min(200),
     applicationDeadline: Joi.date().greater('now'),

@@ -9,8 +9,8 @@ const JOB_COLLECTION_NAME = 'jobs';
 const JOB_COLLECTION_SCHEMA = Joi.object({
   creatorId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
   position: Joi.string().required().min(3).max(50).trim().strict(),
-  description: Joi.string().required().min(3).trim().strict(),
-  benefit: Joi.string().required().min(3).trim().strict(),
+  description: Joi.string().required().min(3),
+  benefit: Joi.string().required().min(3),
   requirements: Joi.array().required(),
   salary: Joi.number().required().min(200),
   status: Joi.string().valid(STATUS.ACCEPT, STATUS.PENDING, STATUS.REJECT).default(STATUS.PENDING),
@@ -105,7 +105,7 @@ const getListJobsByUser = async (reqQuery) => {
       find.requirements = { $all: reqQuery.skills.split(',') };
     }
     if (reqQuery.salary) {
-      find.salary = { $gte: parseInt(reqQuery.salary) };
+      find.salary = parseInt(reqQuery.salary);
     }
     if (reqQuery.workLocation) {
       find.jobLocation = reqQuery.workLocation;
@@ -255,7 +255,7 @@ const totalJobByEmployer = async (employer, reqQuery) => {
       creatorId: ObjectId.createFromHexString(employer._id.toString())
     };
     if (reqQuery?.statusJob) {
-      find.status = reqQuery.status;
+      find.status = reqQuery.statusJob;
     }
     const result = await GET_DB().collection(JOB_COLLECTION_NAME).countDocuments(find);
 

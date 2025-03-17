@@ -8,7 +8,8 @@ const createNew = async (req, res, next) => {
     employerId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
     jobId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
     coverLetter: Joi.string().required().min(100),
-    cvLink: Joi.string().default(null)
+    cvLink: Joi.string().default(null),
+    position: Joi.string().required()
   });
 
   try {
