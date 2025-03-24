@@ -29,6 +29,7 @@ const createNew = async (reqBody) => {
 };
 const update = async (idUser, reqBody) => {
   try {
+    reqBody.username = reqBody.email.split('@')[0];
     const updated = await userModel.update(idUser, reqBody);
     return updated;
   } catch (error) {

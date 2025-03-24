@@ -88,7 +88,8 @@ const findOneByEmail = async (email) => {
     const result = await GET_DB().collection(USER_COLLECTION_NAME).findOne({
       //  _id: new ObjectId(id),
       email: email,
-      _destroy: false
+      _destroy: false,
+      status: STATUS.ACTIVE
     });
     return result;
   } catch (error) {

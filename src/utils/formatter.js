@@ -23,6 +23,8 @@ export const pickUser = (user) => {
     'skills',
     'expensive',
     'desiredSalary',
-    'companyName'
+    'companyName',
+    'employerId',
+    'education'
   ]);
 };

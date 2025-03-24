@@ -75,6 +75,7 @@ const update = async (req, res, next) => {
     next(error);
   }
 };
+
 export const jobController = {
   createNew,
   getlistJobs,

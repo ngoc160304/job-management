@@ -35,7 +35,6 @@ const changeStatus = async (idCandidate, status, email, user) => {
   try {
     await candidateES.changeStatus(idCandidate, status);
     await candidateModel.changeStatus(idCandidate, status);
-    console.log(user);
     const customSubject = `${user.companyName} thông báo tuyển dụng`;
     let htmlContent = '';
     if (status === STATUS.ACCEPT) {
@@ -58,10 +57,19 @@ const getCandidateDetails = async (idCandidate) => {
     throw error;
   }
 };
+const getJobsApplied = async (user) => {
+  try {
+    const result = await candidateModel.getJobsApplied(user);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
 export const candidateSercice = {
   createNew,
   getListCandidates,
   deleteCandidate,
   changeStatus,
-  getCandidateDetails
+  getCandidateDetails,
+  getJobsApplied
 };

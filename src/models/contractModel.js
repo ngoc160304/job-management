@@ -83,10 +83,11 @@ const getListContract = async (reqQuery) => {
         },
         {
           $project: {
-            password: 0
+            'creatorInfo.password': 0
           }
         },
         { $skip: skip },
+        { $sort: { createdAt: -1 } },
         { $limit: limit }
       ])
       .toArray();

@@ -3,6 +3,9 @@ import { ObjectId } from 'mongodb';
 import { GET_DB } from '~/config/mongodb';
 import { STATUS } from '~/utils/constants';
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators';
+import { userModel } from './userModel';
+import { jobModel } from './jobModel';
+import { roomChatModel } from './roomChatModel';
 const CANDIDATE_COLLECTION_NAME = 'candidates';
 const CANDIDATE_COLLECTION_SHEMA = Joi.object({
   jobSeekerId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
@@ -91,6 +94,105 @@ const totalCandidateByEmployer = async (employer) => {
     throw new Error(error);
   }
 };
+const getJobsApplied = async (user) => {
+  try {
+    const candidates = await GET_DB()
+      .collection(CANDIDATE_COLLECTION_NAME)
+      .aggregate([
+        {
+          $lookup: {
+            from: userModel.USER_COLLECTION_NAME,
+            localField: 'employerId',
+            foreignField: '_id',
+            as: 'creatorInfo'
+          }
+        },
+        {
+          $lookup: {
+            from: jobModel.JOB_COLLECTION_NAME,
+            localField: 'jobId',
+            foreignField: '_id',
+            as: 'jobInfo'
+          }
+        },
+        {
+          $match: {
+            _destroy: false,
+            jobSeekerId: ObjectId.createFromHexString(user._id.toString())
+          }
+        },
+        {
+          $unwind: '$creatorInfo'
+        },
+        {
+          $unwind: '$jobInfo'
+        },
+        { $sort: { createdAt: -1 } },
+        {
+          $project: {
+            'creatorInfo.password': 0
+          }
+        },
+        { $skip: 0 },
+        { $limit: 30 }
+      ])
+      .toArray();
+    return candidates;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+const getListCandidatesACCEPT = async (employerId) => {
+  try {
+    const result = await GET_DB()
+      .collection(CANDIDATE_COLLECTION_NAME)
+      .aggregate([
+        {
+          $lookup: {
+            from: userModel.USER_COLLECTION_NAME,
+            localField: 'jobSeekerId',
+            foreignField: '_id',
+            as: 'userInfo'
+          }
+        },
+        {
+          $lookup: {
+            from: roomChatModel.ROOM_CHAT_COLLECTION_NAME,
+            localField: 'jobSeekerId',
+            foreignField: 'jobSeekerId',
+            as: 'roomChatInfo'
+          }
+        },
+
+        {
+          $unwind: '$userInfo'
+        },
+        {
+          $unwind: {
+            path: '$roomChatInfo',
+            preserveNullAndEmptyArrays: true
+          }
+        },
+
+        {
+          $project: {
+            'userInfo.password': 0
+          }
+        },
+        {
+          $match: {
+            _destroy: false,
+            employerId: ObjectId.createFromHexString(employerId),
+            status: 'accept'
+          }
+        }
+      ])
+      .toArray();
+    return result;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
 export const candidateModel = {
   CANDIDATE_COLLECTION_NAME,
   CANDIDATE_COLLECTION_SHEMA,
@@ -98,5 +200,7 @@ export const candidateModel = {
   findOneById,
   totalCandidate,
   totalCandidateByEmployer,
-  changeStatus
+  changeStatus,
+  getJobsApplied,
+  getListCandidatesACCEPT
 };

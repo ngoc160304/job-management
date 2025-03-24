@@ -3,6 +3,7 @@ import { JwtProvider } from '~/providers/JwtProvider';
 import { env } from '~/config/environment';
 import ApiError from '~/utils/ApiError';
 import { ROLE_USER } from '~/utils/constants';
+import { userModel } from '~/models/userModel';
 const isAuthorized = async (req, res, next) => {
   const clientAccessToken = req.cookies?.accessToken;
   if (!clientAccessToken) {
@@ -14,8 +15,12 @@ const isAuthorized = async (req, res, next) => {
       clientAccessToken,
       env.ACCESS_TOKEN_SECRET_SIGNATURE
     );
+    const isUserExist = await userModel.findOneByEmail(accessTokenDecoded.email);
+    if (!isUserExist) {
+      next(new ApiError(StatusCodes.UNAUTHORIZED, 'Account was inactive !'));
+      return;
+    }
     req['jwtDecoded'] = accessTokenDecoded;
-
     next();
   } catch (error) {
     if (error?.message?.includes('jwt expired')) {
@@ -41,8 +46,7 @@ const canEditUser = (req, res, next) => {
   if (role === ROLE_USER.ADMIN) {
     return next();
   }
-
-  if (_id === id) {
+  if (_id.toString() === id.toString()) {
     return next();
   }
   next(new ApiError(StatusCodes.FORBIDDEN, 'Unauthorized !'));

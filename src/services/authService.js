@@ -43,7 +43,7 @@ const login = async (reqBody) => {
       userInfo.companyName = existUser.companyName;
     }
     if (existUser.role === ROLE_USER.INTERVIEER) {
-      userInfo.employerId = existUser.employerId;
+      userInfo.employerId = existUser.employerId.toString();
     }
     const accessToken = await JwtProvider.generateToken(
       userInfo,
@@ -72,6 +72,12 @@ const refreshToken = async (clietRefreshToken) => {
       email: refreshTokenDecoded.email,
       role: refreshTokenDecoded.role
     };
+    if (refreshTokenDecoded?.companyName) {
+      userInfo.companyName = refreshTokenDecoded.companyName;
+    }
+    if (refreshTokenDecoded?.employerId) {
+      userInfo.employerId = refreshTokenDecoded.employerId;
+    }
     const accessToken = await JwtProvider.generateToken(
       userInfo,
       env.ACCESS_TOKEN_SECRET_SIGNATURE,

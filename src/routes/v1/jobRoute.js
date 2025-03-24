@@ -42,13 +42,11 @@ Router.route('/details/:id').get(
   jobMiddleware.canDeleteGetDetailJob,
   jobController.getJobDetails
 );
-Router.route('/user/details/:id').get(
-  // authMiddleware.isAuthorized,
-  jobController.getJobDetailsByUser
-);
+Router.route('/user/details/:id').get(jobController.getJobDetailsByUser);
 Router.route('/update/:id').put(
   authMiddleware.isAuthorized,
   authMiddleware.authorize([ROLE_USER.EMPLOYER]),
   jobController.update
 );
+
 export const jobRouter = Router;

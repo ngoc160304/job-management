@@ -46,10 +46,19 @@ const getCandidateDetails = async (req, res, next) => {
     next(error);
   }
 };
+const getJobsApplied = async (req, res, next) => {
+  try {
+    const result = await candidateSercice.getJobsApplied(req.jwtDecoded);
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 export const candidateController = {
   createNew,
   getListCandidates,
   deleteCandidate,
   changeStatus,
-  getCandidateDetails
+  getCandidateDetails,
+  getJobsApplied
 };

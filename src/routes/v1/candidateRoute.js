@@ -48,7 +48,12 @@ Router.route('/change-status/:status/:id/:email').put(
 );
 Router.route('/details/:id').get(
   authMiddleware.isAuthorized,
-  authMiddleware.authorize([ROLE_USER.EMPLOYER]),
+  authMiddleware.authorize([ROLE_USER.EMPLOYER, ROLE_USER.INTERVIEER]),
   candidateController.getCandidateDetails
+);
+Router.route('/jobs-applied').get(
+  authMiddleware.isAuthorized,
+  authMiddleware.authorize([ROLE_USER.JOB_SEEKER]),
+  candidateController.getJobsApplied
 );
 export const candidateRouter = Router;

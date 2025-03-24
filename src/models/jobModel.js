@@ -4,6 +4,7 @@ import { GET_DB } from '~/config/mongodb';
 import { JOB_LOCATION, STATUS } from '~/utils/constants';
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators';
 import { userModel } from './userModel';
+import { contractModel } from './contractModel';
 
 const JOB_COLLECTION_NAME = 'jobs';
 const JOB_COLLECTION_SCHEMA = Joi.object({
@@ -110,6 +111,14 @@ const getListJobsByUser = async (reqQuery) => {
     if (reqQuery.workLocation) {
       find.jobLocation = reqQuery.workLocation;
     }
+    const pipeline = [{ $match: { status: STATUS.ACTIVE } }, { $group: { _id: '$creatorId' } }];
+
+    const creatorIdsCursor = await GET_DB()
+      .collection(contractModel.CONTRACT_COLLECTION_NAME)
+      .aggregate(pipeline)
+      .toArray();
+    const creatorIds = creatorIdsCursor.map((item) => item._id);
+    find.creatorId = { $in: creatorIds };
     const limit = parseInt(reqQuery?.limit) || 3;
     const skip = (parseInt(reqQuery?.page) - 1) * limit || 0;
     const listJobs = await GET_DB()
@@ -278,7 +287,18 @@ const getJobDetailsByUser = async (jobId) => {
           }
         },
         {
+          $lookup: {
+            from: contractModel.CONTRACT_COLLECTION_NAME, // Ghép với collection contract
+            localField: 'creatorId',
+            foreignField: 'creatorId',
+            as: 'contract'
+          }
+        },
+        {
           $unwind: '$employerInfo'
+        },
+        {
+          $unwind: '$contract'
         },
         {
           $project: {
@@ -289,7 +309,8 @@ const getJobDetailsByUser = async (jobId) => {
           $match: {
             _destroy: false,
             _id: ObjectId.createFromHexString(jobId),
-            status: STATUS.ACCEPT
+            status: STATUS.ACCEPT,
+            'contract.status': STATUS.ACTIVE
           }
         }
       ])
